@@ -4,8 +4,8 @@ const settings = {
 
   botName: "Cata Bot",
   botOwner: "Akbar",
-  ownerNumber: "6282198571732",
-  ownerLid: "238392159825931@lid",
+  ownerNumber: "YOUR_NUMBER",
+  ownerLid: "Your_Lid",
 
   giphyApiKey: "qnl7ssQChTdPjsKta2Ax2LMaGXz303tq",
   commandMode: "private",
@@ -16,7 +16,7 @@ const settings = {
   description: "This is a bot for managing group commands and automating task.",
   version: "3.0.6",
 
-  updateZipUrl: "",
+  updateZipUrl: "https://github.com/barxnl-max/WhatsApp-Bot/archive/refs/heads/main.zip",
 };
 //prefix
 global.prefix = [".", "!", "/", "#"];
@@ -27,9 +27,8 @@ global.packname = settings.packname;
 global.author = settings.author;
 global.wm = settings.packname;
 global.auth = `Ig: ${settings.author.replace("@", "")}`;
-// global.gemini = "AIzaSyBMafBrejaagE4Sl4hjS4DB73oYw6z8aVs"
-// global.gemini =  "AIzaSyAFwrqymL58B9D6ihFsJcsE1lkozPiblf0"
-global.gemini = "AIzaSyBCayEWKunQSmezOCXmWJK5D_qD0k4Unak";
+// 
+global.gemini = "YourApiKey";
 //Respon
 global.error = "❌️ Terjadi kesalahan, mohon coba lagi nanti!";
 global.load = "⏳️ Tunggu Sebentar, permintaan anda sedang kami proses";

@@ -183,12 +183,6 @@ async function startsock() {
     sock.ev.on("group-participants.update", async update => {
       await handleGroupParticipantUpdate(sock, update);
     });
-    sock.ev.on("status.update", async s => {
-      await handleStatus(sock, s);
-    });
-    sock.ev.on("messages.reaction", async r => {
-      await handleStatus(sock, r);
-    });
     return sock;
   } catch (err) {
     console.error("STARTSOCK ERROR:", err);

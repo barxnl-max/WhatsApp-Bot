@@ -193,7 +193,8 @@ async function handleMessages(sock, messageUpdate) {
       });
     }
     const senderIsSudo = await isSudo(senderId);
-    const isOwner = await isOwnerOrSudo(senderId, sock, chatId);
+    const Owner = await isOwnerOrSudo(senderId, sock, chatId);
+    const isOwner = Owner || m.key.fromMe;
     const isPremium = isOwner || user.premium === true;
     const isEvalHandled = await evaluate({
       normalized,

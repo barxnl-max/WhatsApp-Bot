@@ -424,8 +424,5 @@ async function handleGroupParticipantUpdate(sock, update) {
 module.exports = {
   handleMessages,
   handleMessagesExecutor,
-  handleGroupParticipantUpdate,
-  handleStatus: async (sock, status) => {
-    await handleStatusUpdate(sock, status);
-  }
+  handleGroupParticipantUpdate
 };

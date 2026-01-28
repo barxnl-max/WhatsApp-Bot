@@ -14,7 +14,7 @@ const settings = {
   storeWriteInterval: 10000,
 
   description: "This is a bot for managing group commands and automating task.",
-  version: "3.0.6",
+  version: "1.0.0",
 
   updateZipUrl: "https://github.com/barxnl-max/WhatsApp-Bot/archive/refs/heads/main.zip",
 };

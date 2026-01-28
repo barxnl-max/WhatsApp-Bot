@@ -23,8 +23,7 @@ const {
 } = require("@whiskeysockets/baileys");
 const {
   handleMessages,
-  handleGroupParticipantUpdate,
-  handleStatus
+  handleGroupParticipantUpdate
 } = require("./main");
 const {
   smsg

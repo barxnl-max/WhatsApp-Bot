@@ -1,12 +1,20 @@
-# 🤖 WhatsApp Bot — Baileys Multi-Device
+<p align="center">
+  <img src="https://raw.githubusercontent.com/barxnl-max/WhatsApp-Bot/main/assets/giphy.gif" alt="WhatsApp Bot Demo" width="100%">
+</p>
 
-> 🚀 Powerful, fast, and fully modular **WhatsApp Bot** built with **Node.js (CommonJS)** and **Baileys Multi-Device**.  
-> Designed for stability, scalability, and easy customization using a **plugin-based system**.
+<h1 align="center">🤖 WhatsApp Bot — Baileys Multi-Device</h1>
 
-![Node.js](https://img.shields.io/badge/node-%3E%3D20-green)
-![Status](https://img.shields.io/badge/status-active-success)
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Baileys](https://img.shields.io/badge/Baileys-Multi--Device-purple)
+<p align="center">
+  <b>Author:</b> barxnl-max <br>
+  <b>Instagram:</b> <a href="https://instagram.com/barxnl250_">@username_ig</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/node-%3E%3D20-green">
+  <img src="https://img.shields.io/badge/status-active-success">
+  <img src="https://img.shields.io/badge/license-MIT-blue">
+  <img src="https://img.shields.io/badge/Baileys-Multi--Device-purple">
+</p>
 
 ---
 

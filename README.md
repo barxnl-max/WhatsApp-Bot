@@ -1,19 +1,24 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/barxnl-max/WhatsApp-Bot/main/assets/giphy.gif" alt="WhatsApp Bot Demo" width="100%">
+  <img 
+    src="https://raw.githubusercontent.com/barxnl-max/WhatsApp-Bot/main/assets/giphy.gif"
+    alt="WhatsApp Bot Banner"
+    width="65%"
+  />
 </p>
 
-<h1 align="center">🤖 WhatsApp Bot — Baileys Multi-Device</h1>
+<h2 align="center">🤖 WhatsApp Bot — Baileys Multi-Device</h2>
 
 <p align="center">
-  <b>Author:</b> barxnl-max <br>
-  <b>Instagram:</b> <a href="https://instagram.com/barxnl250_">@username_ig</a>
+  <b>Author:</b> Akbar<br>
+  <b>Instagram:</b>
+  <a href="https://instagram.com/barxnl250_">Instagram</a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/node-%3E%3D20-green">
-  <img src="https://img.shields.io/badge/status-active-success">
-  <img src="https://img.shields.io/badge/license-MIT-blue">
-  <img src="https://img.shields.io/badge/Baileys-Multi--Device-purple">
+  <img src="https://img.shields.io/badge/node-%3E%3D20-green" />
+  <img src="https://img.shields.io/badge/status-active-success" />
+  <img src="https://img.shields.io/badge/license-MIT-blue" />
+  <img src="https://img.shields.io/badge/Baileys-Multi--Device-purple" />
 </p>
 
 ---

@@ -39,10 +39,12 @@
 
 ```bash
 WhatsApp-Bot/
-├── plugins/            # All bot features (commands)
-├── lib/                # Core libraries (database, helper)
-├── session/            # WhatsApp session (ignored by git)
-├── index.js            # Main entry
+├── plugins/          # All bot features (commands)
+├── lib/              # Core libraries (database, helper)
+├── data/             # Database
+├── session/          # WhatsApp session (ignored by git)
+├── index.js          # Main entry
+├── main.js           # Main bot logic and handlers, including message processing, plugin loader, and permission checks.
 ├── package.json
 └── README.md
 ```

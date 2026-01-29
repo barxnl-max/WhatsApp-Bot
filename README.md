@@ -58,29 +58,36 @@ npm start
 
 ## 🧩 Plugin Template
 
-```js
 module.exports = {
-  name: "example",
-  command: ["example"],
-  limit: true,
+  /* ============== META ============== */
+  name: "exampleall",
+  command: ["exampleall", "halo", "bot"],
 
-  async handler({ m, args, prefix, command }) {
-    const text = args.join(" ")
-    if (!text) return m.reply(prefix + command + " hello")
+  // permission flags
+  group: true,        // group only
+  admin: false,       // admin not required
+  botAdmin: false,    // bot admin not required
+  owner: false,       // owner not required
+  premium: false,     // premium not required
+  nsfw: false,        // non-NSFW
+  private: false,     // usable in group & private
+  limit: false,       // no limit usage
 
-    m.reply("You said: " + text)
+  tags: ["example", "group", "misc"],
+  usedCmd: ["exampleall"],
+
+  /* ============== HANDLER ============== */
+  async handler({
+    m,
+    isGroup
+  }) {
+
+    // group check (because group: true)
+    if (!isGroup) {
+      return m.reply("❌ This command can only be used in groups")
+    }
+
+    // simple response
+    await m.reply("👋 Hello, I am a WhatsApp Bot 🤖")
   }
-}
-
-{
-  level: 1,
-  exp: 0,
-  credit: 0,
-  premium: false,
-  limit: {
-    daily: 10,
-    lastReset: <timestamp>
-  },
-  game: {},
-  lastClaim: 0
 }

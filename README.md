@@ -37,7 +37,6 @@
 
 ## 📂 Project Structure
 
-```bash
 WhatsApp-Bot/
 ├── plugins/            # All bot features (commands)
 ├── lib/                # Core libraries (database, helper)
@@ -46,7 +45,6 @@ WhatsApp-Bot/
 ├── package.json
 └── README.md
 
----
 
 ## 🚀 Installation
 
@@ -55,13 +53,12 @@ WhatsApp-Bot/
 git clone https://github.com/barxnl-max/WhatsApp-Bot.git
 cd WhatsApp-Bot
 npm install
-npm start
+npm start 
 
----
 
 ## 🧩 Plugin Template
 
-```js
+``` 
 module.exports = {
   name: "example",
   command: ["example"],
@@ -80,7 +77,6 @@ module.exports = {
   exp: 0,
   credit: 0,
   premium: false,
-  registered: false,
   limit: {
     daily: 10,
     lastReset: <timestamp>

@@ -2,7 +2,7 @@
   <img 
     src="https://raw.githubusercontent.com/barxnl-max/WhatsApp-Bot/main/assets/giphy.gif"
     alt="WhatsApp Bot Banner"
-    width="55%"
+    width="40%"
   />
 </p>
 

@@ -98,7 +98,7 @@ async function startsock() {
         const msg = chatUpdate.messages?.[0];
         if (!msg?.message) return;
         if (msg.key.remoteJid === "status@broadcast") {
-          await handleStatus(sock, chatUpdate);
+          // await handleStatus(sock, chatUpdate); pr
           return;
         }
         if (msg.message?.ephemeralMessage) {

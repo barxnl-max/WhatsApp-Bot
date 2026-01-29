@@ -58,7 +58,7 @@ npm start
 
 ## 🧩 Plugin Template
 
-``` 
+``` bash
 module.exports = {
   name: "example",
   command: ["example"],

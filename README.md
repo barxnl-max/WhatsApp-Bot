@@ -43,7 +43,7 @@ WhatsApp-Bot/
 ├── session/            # WhatsApp session (ignored by git)
 ├── index.js            # Main entry
 ├── package.json
-└── README.md```md
+└── README.md
 
 
 ## 🚀 Installation

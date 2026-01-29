@@ -145,6 +145,13 @@ async function handleMessages(sock, messageUpdate) {
     const chatId = m.chat
     const senderId = m.sender;
     if (m.isGroup) {
+  const group = getGroup(m.chat)
+  if (group.blacklist?.[m.sender]) {
+    await sock.sendMessage(m.chat, { delete: m.key })
+    return
+  }
+    }
+    if (m.isGroup) {
   const group = getGroup(chatId)
   if (group.banned?.[senderId]) {
     return

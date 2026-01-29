@@ -36,6 +36,7 @@
 ---
 
 ## 📂 Project Structure
+
 ```bash
 WhatsApp-Bot/
 ├── plugins/            # All bot features (commands)
@@ -44,20 +45,22 @@ WhatsApp-Bot/
 ├── index.js            # Main entry
 ├── package.json
 └── README.md
-
+```
 
 ## 🚀 Installation
 
-### 1️⃣ Clone Repository
+### Clone Repository
 
+```bash
 git clone https://github.com/barxnl-max/WhatsApp-Bot.git
 cd WhatsApp-Bot
 npm install
-npm start 
-
+npm start
+```
 
 ## 🧩 Plugin Template
 
+```js
 module.exports = {
   /* ============== META ============== */
   name: "exampleall",
@@ -77,17 +80,38 @@ module.exports = {
   usedCmd: ["exampleall"],
 
   /* ============== HANDLER ============== */
-  async handler({
-    m,
-    isGroup
-  }) {
-
-    // group check (because group: true)
+  async handler({ m, isGroup }) {
     if (!isGroup) {
       return m.reply("❌ This command can only be used in groups")
     }
 
-    // simple response
     await m.reply("👋 Hello, I am a WhatsApp Bot 🤖")
   }
 }
+```
+
+## 📊 Permission Flags
+
+| Flag | Description |
+|------|------------|
+| group | Group only |
+| admin | Group admin |
+| botAdmin | Bot must be admin |
+| owner | Bot owner only |
+| premium | Premium user |
+| nsfw | 18+ content |
+| limit | Daily limit |
+
+## ⚠️ Notes
+
+- Do not upload `session/`
+- Do not upload `.env`
+- Do not modify database structure
+
+## 📄 License
+
+MIT License
+
+## ⚠️ Disclaimer
+
+This project is for educational purposes only.

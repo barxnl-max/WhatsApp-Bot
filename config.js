@@ -1,3 +1,5 @@
+// Mending koe buat file .env
+
 global.groqApi = "YOUR_APIKEY";
 global.groqAPI = "YOUR_APIKEY";
 global.geminiApi = "YOUR_APIKEY";

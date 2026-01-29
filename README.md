@@ -43,13 +43,13 @@ WhatsApp-Bot/
 ├── session/            # WhatsApp session (ignored by git)
 ├── index.js            # Main entry
 ├── package.json
-└── README.md
+└── README.md```md
 
 
 ## 🚀 Installation
 
 ### 1️⃣ Clone Repository
-```bash
+
 git clone https://github.com/barxnl-max/WhatsApp-Bot.git
 cd WhatsApp-Bot
 npm install

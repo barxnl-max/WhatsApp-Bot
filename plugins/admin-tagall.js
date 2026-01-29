@@ -1,4 +1,3 @@
-js
 module.exports = {
   name: "tagall",
   command: ["tagall", "mentionall"],

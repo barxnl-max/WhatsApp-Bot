@@ -36,7 +36,7 @@
 ---
 
 ## 📂 Project Structure
-
+```bash
 WhatsApp-Bot/
 ├── plugins/            # All bot features (commands)
 ├── lib/                # Core libraries (database, helper)
@@ -58,7 +58,7 @@ npm start
 
 ## 🧩 Plugin Template
 
-``` bash
+```js
 module.exports = {
   name: "example",
   command: ["example"],

@@ -40,7 +40,7 @@ module.exports = {
       try {
         avatar = await sock.profilePictureUrl(targetJid, "image");
       } catch {
-        avatar = "https://files.catbox.moe/nwvkbt.png";
+        avatar = "https://i.ibb.co.com/twJ7HCJ0/avatar-contact.png";
       }
 
       let text = "";

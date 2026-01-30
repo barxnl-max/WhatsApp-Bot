@@ -8,7 +8,9 @@ module.exports = {
     "group desc <deskripsi>",
     "group open",
     "group close",
-    "group pp (reply gambar)"
+    "group pp (reply gambar)",
+    "group link",
+    "group revoke"
   ],
   tags: ["admin"],
   group: true,
@@ -35,7 +37,9 @@ module.exports = {
         "• group desc <deskripsi>\n" +
         "• group open\n" +
         "• group close\n" +
-        "• group pp (reply gambar)"
+        "• group pp (reply gambar)\n" +
+        "• group link\n" +
+        "• group revoke"
       )
     }
 
@@ -87,6 +91,24 @@ module.exports = {
 
       await sock.updateProfilePicture(chatId, buffer)
       return m.reply("✅ Foto grup berhasil diubah")
+    }
+
+    if (sub === "link") {
+      const code = await sock.groupInviteCode(chatId)
+      return m.reply(
+        "🔗 *LINK GRUP*\n\n" +
+        `https://chat.whatsapp.com/${code}`
+      )
+    }
+
+    if (sub === "revoke") {
+      await sock.groupRevokeInvite(chatId)
+      const code = await sock.groupInviteCode(chatId)
+
+      return m.reply(
+        "♻️ *LINK GRUP DIPERBARUI*\n\n" +
+        `https://chat.whatsapp.com/${code}`
+      )
     }
 
     return m.reply("❌ Perintah tidak dikenal")

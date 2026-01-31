@@ -133,8 +133,15 @@ async function handleMessages(sock, messageUpdate) {
     } = messageUpdate;
     if (type !== "notify") return;
     if (!Array.isArray(messages) || !messages[0]) return;
-    const message = messages[0];
-    if (!message.message) return;
+    const message = messages[0]
+    if (!message) return
+    if (message.message?.protocolMessage?.type === 14) {
+    const edited =
+    message.message.protocolMessage.editedMessage
+    if (!edited) return
+    message.message = edited
+}
+if (!message.message) return
     storeMessage(sock, message);
     if (message.message?.protocolMessage?.type === 0) {
       await handleMessageRevocation(sock, message);

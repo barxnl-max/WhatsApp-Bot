@@ -45,7 +45,6 @@ process.on("SIGINT", saveDB);
 process.on("SIGTERM", saveDB);
 
 const settings = require("./settings");
-require("./config.js");
 const {
   isSudo
 } = require("./lib/index");

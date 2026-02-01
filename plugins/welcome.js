@@ -1,100 +1,150 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("fs")
+const path = require("path")
+const { Welcome } = require("../lib/welcome")
 
-const DB_PATH = path.join(__dirname, "../data/welcome.json");
+const DB_PATH = path.join(__dirname, "../data/welcome.json")
 
 function loadDB() {
   try {
-    return JSON.parse(fs.readFileSync(DB_PATH));
+    return JSON.parse(fs.readFileSync(DB_PATH))
   } catch {
-    return {};
+    return {}
   }
 }
 
 function saveDB(db) {
-  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2));
+  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2))
 }
 
 module.exports = {
   name: "welcome",
   command: ["welcome"],
-  usedCmd: ["welcome on/off", "welcome set <teks>"],
+  tags: ["admin"],
   group: true,
   admin: true,
-  botAdmin: false,
-  tags: ["admin"],
+  botAdmin: true,
 
   async handler({ m, chatId, args, isAdmin, isOwner }) {
-    if (!isAdmin && !isOwner) {
-      return m.reply("❌ Hanya admin grup yang bisa mengatur welcome");
-    }
+    if (!isAdmin && !isOwner)
+      return m.reply("❌ Hanya admin grup")
 
-    const db = loadDB();
+    const db = loadDB()
+
     if (!db[chatId]) {
       db[chatId] = {
         enabled: false,
-        text:
-          "👋 Selamat datang @user di grup *{group}*\n\n" +
-          "Semoga betah ya ✨",
-      };
+        mode: "image",
+        text: "👋 Selamat datang @user di @group\nMember ke-@member"
+      }
+      saveDB(db)
     }
 
-    const action = args[0]?.toLowerCase();
+    if (!db[chatId].mode) db[chatId].mode = "image"
+    if (!db[chatId].text)
+      db[chatId].text =
+        "👋 Selamat datang @user di @group\nMember ke-@member"
 
-    if (!action) {
+    const sub = (args[0] || "").toLowerCase()
+
+    if (!sub) {
       return m.reply(
         `👋 *WELCOME SETTING*\n\n` +
-          `Status : ${db[chatId].enabled ? "ON" : "OFF"}\n\n` +
-          `Gunakan:\n` +
-          `.welcome on\n` +
-          `.welcome off\n` +
-          `.welcome set <teks>\n\n` +
-          `Tag:\n` +
-          `@user → user masuk\n` +
-          `@group → nama grup`,
-      );
+        `Status : ${db[chatId].enabled ? "ON ✅" : "OFF ❌"}\n` +
+        `Mode   : ${(db[chatId].mode || "image").toUpperCase()}\n\n` +
+        `Text :\n${db[chatId].text}\n\n` +
+        `Gunakan:\n` +
+        `.welcome on\n` +
+        `.welcome off\n` +
+        `.welcome set <text>\n` +
+        `.welcome set --text <text>\n\n` +
+        `Variabel:\n@user @group @member @desc`
+      )
     }
 
-    if (action === "on") {
-      db[chatId].enabled = true;
-      saveDB(db);
-      return m.reply("✅ Welcome diaktifkan");
+    if (sub === "on") {
+      db[chatId].enabled = true
+      saveDB(db)
+      return m.reply("✅ Welcome diaktifkan")
     }
 
-    if (action === "off") {
-      db[chatId].enabled = false;
-      saveDB(db);
-      return m.reply("❌ Welcome dimatikan");
+    if (sub === "off") {
+      db[chatId].enabled = false
+      saveDB(db)
+      return m.reply("❌ Welcome dimatikan")
     }
 
-    if (action === "set") {
-      const text = args.slice(1).join(" ");
-      if (!text) {
-        return m.reply("❌ Masukkan teks welcome");
-      }
+    if (sub === "set") {
+  const isTextOnly = args[1] === "--text"
 
-      db[chatId].text = text;
-      saveDB(db);
-      return m.reply("✅ Teks welcome berhasil diubah");
-    }
+  const raw =
+    m.message?.conversation ||
+    m.message?.extendedTextMessage?.text ||
+    ""
+ 
+  const text = raw
+    .replace(/^\.welcome\s+set(\s+--text)?/i, "")
+    .trim()
 
-    m.reply("❌ Perintah tidak dikenal");
+  if (!text)
+    return m.reply("❌ Masukkan teks welcome")
+
+  db[chatId].text = text
+  db[chatId].mode = isTextOnly ? "text" : "image"
+  saveDB(db)
+
+  return m.reply(
+    `✅ Welcome disimpan\nMode: ${db[chatId].mode.toUpperCase()}`
+  )
+}
+
+    m.reply("❌ Perintah tidak dikenal")
   },
 
   async onGroupJoin({ sock, chatId, participants, groupMetadata }) {
-    const db = loadDB();
-    const data = db[chatId];
-    if (!data || !data.enabled) return;
+  const db = loadDB()
+  if (!db[chatId]?.enabled) return
 
-    for (const user of participants) {
-      const teks = data.text
-        .replace(/@user/g, `@${user.split("@")[0]}`)
-        .replace(/@group/g, groupMetadata.subject);
+  const desc = groupMetadata.desc || "Tidak ada deskripsi"
 
+  for (const p of participants) {
+    const jid = typeof p === "string" ? p : p?.id
+    if (!jid) continue
+
+    const username = jid.split("@")[0]
+
+    const text = db[chatId].text
+      .replace(/@user/g, `@${username}`)
+      .replace(/@group/g, groupMetadata.subject)
+      .replace(/@member/g, groupMetadata.participants.length)
+      .replace(/@desc/g, desc)
+
+    if (db[chatId].mode === "text") {
       await sock.sendMessage(chatId, {
-        text: teks,
-        mentions: [user],
-      });
+        text,
+        mentions: [jid]
+      })
+      continue
     }
-  },
-};
+
+    let avatar
+    try {
+      avatar = await sock.profilePictureUrl(jid, "image")
+    } catch {
+      avatar = "https://i.ibb.co/4pDNDk1/avatar.png"
+    }
+
+    const img = await Welcome({
+      avatar,
+      username,
+      group: groupMetadata.subject,
+      member: groupMetadata.participants.length
+    })
+
+    await sock.sendMessage(chatId, {
+      image: img,
+      caption: text,
+      mentions: [jid]
+    })
+  }
+}
+}

@@ -1,25 +1,4 @@
-const fs = require("fs");
-const path = require("path");
-
-const MODE_PATH = path.join(__dirname, "../data/messageCount.json");
-
-function getMode() {
-  try {
-    const data = JSON.parse(fs.readFileSync(MODE_PATH));
-    return typeof data.isPublic === "boolean" ? data.isPublic : true;
-  } catch {
-    return true;
-  }
-}
-
-function setMode(isPublic) {
-  let data = {};
-  try {
-    data = JSON.parse(fs.readFileSync(MODE_PATH));
-  } catch {}
-  data.isPublic = isPublic;
-  fs.writeFileSync(MODE_PATH, JSON.stringify(data, null, 2));
-}
+const { getBotMode, setBotMode } = require("../lib/botMode")
 
 module.exports = {
   name: "mode",
@@ -28,30 +7,34 @@ module.exports = {
   tags: ["owner"],
 
   async handler({ m, args }) {
-    const action = args[0]?.toLowerCase();
+    const mode = args[0]?.toLowerCase()
 
-    if (!action) {
-      const current = getMode() ? "public" : "private";
+    const list = [
+      "self",
+      "private",
+      "group",
+      "private_group",
+      "public"
+    ]
+
+    if (!mode) {
       return m.reply(
-        `🔐 *MODE BOT*\n\n` +
-          `Mode saat ini: *${current}*\n\n` +
-          `Gunakan:\n` +
-          `.mode public\n` +
-          `.mode private`,
-      );
+        `🔐 *BOT MODE*\n\n` +
+        `Mode saat ini: *${getBotMode()}*\n\n` +
+        `Gunakan:\n` +
+        list.map(v => `• .mode ${v}`).join("\n")
+      )
     }
 
-    if (!["public", "private"].includes(action)) {
+    if (!list.includes(mode)) {
       return m.reply(
-        "❌ Format salah\n\n" +
-          "Gunakan:\n" +
-          ".mode public\n" +
-          ".mode private",
-      );
+        "❌ Mode tidak valid\n\n" +
+        "Mode tersedia:\n" +
+        list.join(", ")
+      )
     }
 
-    setMode(action === "public");
-
-    await m.reply(`✅ Mode bot berhasil diubah ke *${action.toUpperCase()}*`);
-  },
-};
+    setBotMode(mode)
+    await m.reply(`✅ Mode bot diubah ke *${mode.toUpperCase()}*`)
+  }
+}

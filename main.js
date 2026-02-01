@@ -43,18 +43,22 @@ setInterval(saveDB, 30_000);
 process.on("exit", saveDB);
 process.on("SIGINT", saveDB);
 process.on("SIGTERM", saveDB);
+
 const settings = require("./settings");
 require("./config.js");
 const {
   isSudo
 } = require("./lib/index");
+const { getBotMode, allowByMode, isTester } = require("./lib/botMode")
 const isOwnerOrSudo = require("./lib/isOwner");
 const isAdmin = require("./lib/isAdmin");
 const {
   logCommand,
   logMessage
 } = require("./lib/logger");
-const { getGroup } = require("./lib/dbgroup")
+const {
+  getGroup
+} = require("./lib/dbgroup");
 const {
   storeMessage,
   handleMessageRevocation
@@ -133,42 +137,56 @@ async function handleMessages(sock, messageUpdate) {
     } = messageUpdate;
     if (type !== "notify") return;
     if (!Array.isArray(messages) || !messages[0]) return;
-    const message = messages[0]
-    if (!message) return
+    const message = messages[0];
+    if (!message) return;
     if (message.message?.protocolMessage?.type === 14) {
-    const edited =
-    message.message.protocolMessage.editedMessage
-    if (!edited) return
-    message.message = edited
-}
-if (!message.message) return
+      const edited = message.message.protocolMessage.editedMessage;
+      if (!edited) return;
+      message.message = edited;
+    }
+    if (!message.message) return;
     storeMessage(sock, message);
     if (message.message?.protocolMessage?.type === 0) {
       await handleMessageRevocation(sock, message);
       return;
     }
-    const m = sock.serializeM(message)
-    
-    const chatId = m.chat
+    const m = sock.serializeM(message);
+    const chatId = m.chat;
     const senderId = m.sender;
     if (m.isGroup) {
-  const group = getGroup(m.chat)
-  if (group.blacklist?.[m.sender]) {
-    await sock.sendMessage(m.chat, { delete: m.key })
-    return
-  }
+      const group = getGroup(m.chat);
+      const blacklist = group.blacklist || {};
+      if (blacklist[m.sender]) {
+        try {
+          await sock.sendMessage(m.chat, {
+            delete: m.key
+          });
+        } catch {}
+        return;
+      }
     }
     if (m.isGroup) {
-  const group = getGroup(chatId)
-  if (group.banned?.[senderId]) {
-    return
-  }
+      const group = getGroup(chatId);
+      if (group.banned?.[senderId]) {
+        return;
+      }
     }
     const user = getUser(senderId);
     const isGroup = m.isGroup;
     const isPrivate = !isGroup;
+    const Owner = await isOwnerOrSudo(senderId, sock, chatId);
+    const isOwner = Owner || m.key.fromMe;
+    const isPremium = isOwner || user.premium === true;
     const rawText = message.message?.conversation || message.message?.extendedTextMessage?.text || message.message?.imageMessage?.caption || message.message?.videoMessage?.caption || "";
     let body = rawText.trim();
+    const botMode = getBotMode()
+    const allowed = allowByMode({
+  mode: botMode,
+  isGroup,
+  isOwner,
+  isTester: isTester(senderId)
+})
+if (!allowed) return
     const normalized = body.trimStart();
     const userMessage = body.toLowerCase().replace(/\.\s+/g, ".").trim();
     try {
@@ -206,10 +224,6 @@ if (!message.message) return
         group: isGroup ? m.groupMetadata?.subject : null
       });
     }
-    const senderIsSudo = await isSudo(senderId);
-    const Owner = await isOwnerOrSudo(senderId, sock, chatId);
-    const isOwner = Owner || m.key.fromMe;
-    const isPremium = isOwner || user.premium === true;
     const isEvalHandled = await evaluate({
       normalized,
       message,
@@ -247,27 +261,20 @@ if (!message.message) return
       }
       return;
     }
-    let isPublic = true;
-    try {
-      const data = JSON.parse(fs.readFileSync("./data/messageCount.json"));
-      if (typeof data.isPublic === "boolean") isPublic = data.isPublic;
-    } catch {}
-    if (!isPublic && !isOwner && !isPremium) return;
     if (isCommand && !user.registered && !isOwner) {
       if (!["daftar", "register"].includes(command)) {
         return m.reply("👋 Hai!\n\n" + "Kamu belum terdaftar di bot ini.\n\n" + "📌 Silakan daftar dulu dengan format:\n" + "`#daftar <nama> <umur>`\n\n" + "Contoh:\n" + "`#daftar lydia 20`");
       }
     }
     if (m.isGroup) {
-  const group = getGroup(chatId)
-  const banned = group.banned?.[senderId]
-
-  if (banned) {
-    if (isCommand) {
-      return m.reply("🚫 Kamu diban di grup ini, hubungin atemin untuk membuka banned anda😂")
-    }
-    return
-  }
+      const group = getGroup(chatId);
+      const banned = group.banned?.[senderId];
+      if (banned) {
+        if (isCommand) {
+          return m.reply("🚫 Kamu diban di grup ini, hubungin atemin untuk membuka banned anda😂");
+        }
+        return;
+      }
     }
     if (m.quoted) {
       const session = global.REPLY_SESSIONS.get(senderId);
@@ -300,13 +307,7 @@ if (!message.message) return
           }
         }
       }
-      if (isGroup) {
-        // tambahin lakau mau
-        if (isPublic || isOwner) {
-          // tambahain kalau mau
-        }
-      }
-      return;
+    return
     }
     m._commandContext = {
       command,
@@ -317,7 +318,8 @@ if (!message.message) return
       isPrivate,
       senderId,
       chatId,
-      usedPrefix
+      usedPrefix,
+      isTester: isTester(senderId)
     };
     await handleMessagesExecutor(sock, m, message, plugins);
   } catch (err) {
@@ -343,15 +345,24 @@ async function handleMessagesExecutor(sock, m, message, plugins) {
       return m.reply(`⛔ Command *${command}* sedang diblokir.`);
     }
   }
-  let isSenderAdmin = false;
-  let isBotAdmin = false;
-  const plugin = plugins.find(p => Array.isArray(p.command) ? p.command.includes(command) : p.command === command);
-  if (plugin) {
-    if (isGroup && plugin.admin) {
-      const adminStatus = await isAdmin(sock, chatId, senderId);
-      isSenderAdmin = adminStatus.isSenderAdmin;
-      isBotAdmin = adminStatus.isBotAdmin;
-    }
+  
+  const plugin = plugins.find(p =>
+  Array.isArray(p.command)
+    ? p.command.includes(command)
+    : p.command === command
+);
+
+if (!plugin) return; // ⬅️ INI YANG HILANG DARI KODINGANMU
+
+let isSenderAdmin = false;
+let isBotAdmin = false;
+
+if (isGroup && (plugin.admin || plugin.botAdmin)) {
+  const adminStatus = await isAdmin(sock, chatId, senderId);
+  isSenderAdmin = adminStatus.isSenderAdmin;
+  isBotAdmin = adminStatus.isBotAdmin;
+}
+
     if (plugin.owner && !isOwner) return m.reply("❌ Owner only");
     if (plugin.admin && !isSenderAdmin) return m.reply("❌ Admin only");
     if (plugin.premium && !isPremium) return m.reply("❌ Premium only");
@@ -394,11 +405,15 @@ async function handleMessagesExecutor(sock, m, message, plugins) {
       const levelUp = addExp(user, 30);
       if (levelUp) {
         addCredit(user, user.level * 50);
-        await m.reply(`🎉 *LEVEL UP!*\n\n` + `👤 User : ${m.pushName || "Unknown"}\n` + `⭐ Level : ${user.level}\n` + `💰 Bonus : ${user.level * 50} credit`);
+        await m.reply(
+          `🎉 *LEVEL UP!*\n\n` +
+          `👤 User : ${m.pushName || "Unknown"}\n` +
+          `⭐ Level : ${user.level}\n` +
+          `💰 Bonus : ${user.level * 50} credit`
+        );
       }
     }
     return;
-  }
 }
 async function handleGroupParticipantUpdate(sock, update) {
   try {

@@ -30,8 +30,7 @@ module.exports = {
       history = [
         {
           role: "system",
-          content:
-            "Nama kamu Lydia."
+          content: global.prompt
         }
       ]
     }

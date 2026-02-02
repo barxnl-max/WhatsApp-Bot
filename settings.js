@@ -8,7 +8,6 @@ const settings = {
   ownerLid: "Your_Lid",
 
   giphyApiKey: "qnl7ssQChTdPjsKta2Ax2LMaGXz303tq",
-  commandMode: "private",
 
   maxStoreMessages: 40,
   storeWriteInterval: 10000,
@@ -27,13 +26,6 @@ global.packname = settings.packname;
 global.author = settings.author;
 global.wm = settings.packname;
 global.auth = `Ig: ${settings.author.replace("@", "")}`;
-// 
-global.gemini = "YourApiKey";
-//Respon
-global.error = "❌️ Terjadi kesalahan, mohon coba lagi nanti!";
-global.load = "⏳️ Tunggu Sebentar, permintaan anda sedang kami proses";
-global.succes = "✅️ Berhasil...";
-global.channel = "120363423464130445@newsletter";
 
 global.prompt = `Kamu adalah Lydia, AI cewek ceria buatan Akbar.
 Gunakan bahasa Indonesia informal, santai, friendly, kadang jahil dan flirty tapi tetap sopan.

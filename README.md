@@ -9,16 +9,20 @@
 <h2 align="center">🤖 WhatsApp Bot — Baileys Multi-Device</h2>
 
 <p align="center">
-  <b>Author:</b> Akbar<br>
-  <b>Instagram:</b>
-  <a href="https://instagram.com/barxnl250_">Instagram</a>
+  <i>Fast, modular, and powerful WhatsApp bot built with Baileys Multi-Device</i>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/node-%3E%3D20-green" />
-  <img src="https://img.shields.io/badge/status-active-success" />
-  <img src="https://img.shields.io/badge/license-MIT-blue" />
-  <img src="https://img.shields.io/badge/Baileys-Multi--Device-purple" />
+  👤 <b>Author:</b> <a href="https://github.com/barxnl-max">Akbar</a> &nbsp;•&nbsp;
+  📸 <b>Instagram:</b> <a href="https://instagram.com/barxnl250_">@barxnl250_</a> &nbsp;•&nbsp;
+  👥 <b>WhatsApp Group:</b> <a href="https://chat.whatsapp.com/FpaS5cApRWr7t5jxg4N96h">Join</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/node-%3E%3D20-green?style=flat-square" />
+  <img src="https://img.shields.io/badge/status-active-success?style=flat-square" />
+  <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/Baileys-Multi--Device-purple?style=flat-square" />
 </p>
 
 ---

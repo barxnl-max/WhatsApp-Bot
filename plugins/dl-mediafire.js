@@ -35,6 +35,7 @@ async function mediafireScraper(url) {
 module.exports = {
   name: "mediafire",
   command: ["mediafire", "mf"],
+  usedCmd: ["mediafire <url>"],
   tags: ["downloader"],
   limit: true,
 

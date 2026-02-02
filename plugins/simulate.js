@@ -1,7 +1,7 @@
 module.exports = {
   name: "simulate",
   command: ["simulate"],
-  tags: ["group"],
+  tags: ["admin"],
   group: true,
   admin: true,
   limit: false,

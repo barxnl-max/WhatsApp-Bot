@@ -1,9 +1,9 @@
 module.exports = {
   name: "antidelete",
   command: ["antidelete"],
-  tags: ["group"],
+  tags: ["admin"],
   group: true,
-  admin: false,
+  admin: true,
   owner: false,
   limit: false,
 

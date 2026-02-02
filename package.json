@@ -84,6 +84,7 @@
     "cheerio": "^1.0.0-rc.12",
     "cohere-ai": "^7.0.0",
     "cookie": "^0.5.0",
+    "crypto-js": "^4.2.0",
     "dotenv": "^16.4.5",
     "duck-duck-scrape": "^2.2.7",
     "events": "^3.3.0",
@@ -109,7 +110,6 @@
     "node-fetch": "^2.7.0",
     "node-id3": "^0.2.3",
     "node-webpmux": "^3.1.0",
-    "node-youtube-music": "^0.8.3",
     "openai": "^6.16.0",
     "performance-now": "^2.1.0",
     "phin": "^3.7.1",
@@ -128,8 +128,6 @@
     "ws": "^8.17.1",
     "yargs": "^17.6.0",
     "yargs-parser": "^21.1.1",
-    "youtube-yts": "^2.0.0",
-    "youtubedl-core": "^4.11.7",
     "yt-search": "^2.12.1",
     "ytdl-core": "^4.11.5"
   },
@@ -140,7 +138,8 @@
     "@babel/types": "^7.28.6",
     "@types/node": "^20.0.0",
     "eslint": "^9.39.2",
-    "prettier": "^3.8.0"
+    "prettier": "^3.8.0",
+    "cookie": ">=0.7.0"
   },
   "overrides": {
     "jimp": "^1.6.0"

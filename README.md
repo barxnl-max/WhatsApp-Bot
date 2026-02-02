@@ -121,11 +121,6 @@ module.exports = {
 | nsfw | 18+ content |
 | limit | Daily limit |
 
-## ⚠️ Notes
-
-- Do not upload `session/`
-- Do not upload `.env`
-- Do not modify database structure
 
 ## 📄 License
 

@@ -43,7 +43,7 @@
 
 ## 📦 Tech Stack
 
-- **Node.js ≥ 20**
+- **Node.js ≥ 24**
 - **Baileys (WhatsApp Multi-Device)**
 - **CommonJS (CJS)**
 - Express

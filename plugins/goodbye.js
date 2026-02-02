@@ -29,7 +29,7 @@ module.exports = {
   group: true,
   admin: true,
 
-  tags: ["group", "admin"],
+  tags: ["admin"],
 
   usedCmd: ["goodbye on", "goodbye off", "goodbye set <teks>"],
 

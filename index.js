@@ -2,6 +2,7 @@ require("./settings")
 require("./server")
 
 const fs = require("fs")
+const path = require("path")
 const chalk = require("chalk")
 const gradient = require("gradient-string")
 const readline = require("readline")
@@ -24,7 +25,13 @@ const { smsg } = require("./lib/myfunc")
 const store = require("./lib/lightweight_store")
 const simple = require("./lib/simple")
 
-const WIDTH = 56
+const SESSION_DIR = path.join(process.cwd(), "session")
+
+if (!fs.existsSync(SESSION_DIR)) {
+  fs.mkdirSync(SESSION_DIR, { recursive: true })
+}
+
+const WIDTH = 64
 const top = chalk.gray("┌" + "─".repeat(WIDTH) + "┐")
 const bottom = chalk.gray("└" + "─".repeat(WIDTH) + "┘")
 const side = chalk.gray("│")
@@ -32,7 +39,9 @@ const side = chalk.gray("│")
 function ui(lines, color = "white") {
   console.log(top)
   for (const line of lines) {
-    console.log(`${side} ${chalk[color](line).padEnd(WIDTH - 1)}${side}`)
+    console.log(
+      `${side} ${chalk[color](line).padEnd(WIDTH - 1)}${side}`
+    )
   }
   console.log(bottom)
 }
@@ -59,7 +68,7 @@ async function startsock() {
 
   try {
     const { version } = await fetchLatestBaileysVersion()
-    const { state, saveCreds } = await useMultiFileAuthState("./session")
+    const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR)
 
     const msgRetryCounterCache = new NodeCache()
 
@@ -70,7 +79,10 @@ async function startsock() {
       browser: ["MacOS", "Safari", "16.0"],
       auth: {
         creds: state.creds,
-        keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "silent" }))
+        keys: makeCacheableSignalKeyStore(
+          state.keys,
+          pino({ level: "silent" })
+        )
       },
       markOnlineOnConnect: true,
       syncFullHistory: false,
@@ -128,30 +140,54 @@ async function startsock() {
       }
 
       if (connection === "open") {
-        console.clear()
-        console.log(gradient.mind(`[ ${global.botname} ]`))
-        ui(
-          [
-            "🤖 Status   : CONNECTED",
-            "🔐 Mode     : PAIRING",
-            `⏰ Time     : ${new Date().toLocaleString()}`
-          ],
-          "green"
-        )
-      }
+  console.clear()
+
+  const mode = sock.authState.creds.registered
+    ? chalk.green("SESSION")
+    : chalk.yellow("PAIRING")
+
+  const userJid = sock.user?.id?.split(":")[0] || "-"
+  const device = sock.user?.device || "Unknown"
+
+  console.log(
+    gradient.mind(`\n   ${global.botname}\n`)
+  )
+
+  ui(
+    [
+      "🤖 BOT STATUS  : CONNECTED",
+      `🔐 MODE        : ${mode}`,
+      `👤 USER        : ${userJid}`,
+      `🖥️  PLATFORM   : MacOS • Safari`,
+      `⏰ TIME        : ${new Date().toLocaleString()}`,
+      "",
+      "✅ Bot siap menerima perintah",
+      "📨 Listening messages..."
+    ],
+    "cyan"
+  )
+}
 
       if (connection === "close") {
         const code = lastDisconnect?.error?.output?.statusCode
-        ui(["❌ CONNECTION CLOSED", `Reason : ${code || "Unknown"}`], "red")
 
-        if (code === DisconnectReason.loggedOut || code === 401) {
-          fs.rmSync("./session", { recursive: true, force: true })
-          console.log(chalk.yellow("🗑️ Session cleared"))
+        ui(
+          ["❌ CONNECTION CLOSED", `Reason : ${code || "Unknown"}`],
+          "red"
+        )
+
+        if (code === DisconnectReason.loggedOut) {
+          console.log(
+            chalk.red(
+              "⚠️ Logged out detected. Session invalid. Pairing ulang diperlukan."
+            )
+          )
+          fs.rmSync(SESSION_DIR, { recursive: true, force: true })
+        } else {
+          console.log(chalk.yellow("🔁 Reconnecting in 5 seconds..."))
+          await delay(5000)
+          startsock()
         }
-
-        console.log(chalk.yellow("🔁 Reconnecting in 5 seconds..."))
-        await delay(5000)
-        startsock()
       }
     })
 

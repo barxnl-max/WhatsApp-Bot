@@ -19,11 +19,10 @@ function formatViews(num) {
 
 module.exports = {
   name: "play",
-  command: ["play", "ytmp3"],
+  command: ["play"],
   tags: ["downloader"],
   usedCmd: [
-    "play <judul lagu>",
-    "ytmp3 <url youtube>"
+    "play <judul lagu>"
   ],
   limit: true,
 

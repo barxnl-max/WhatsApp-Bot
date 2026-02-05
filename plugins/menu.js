@@ -90,6 +90,7 @@ function tagName(tag) {
       owner: "👑 Owner",
       fun: "🎲 Fun",
       game: "🎮 Game",
+      islam: "🕌 Islam",
       user: "👤 User",
       ai: "🤖 AI",
       nsfw: "🔞 NSFW",

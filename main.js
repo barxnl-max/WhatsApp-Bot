@@ -275,43 +275,30 @@ if (!allowed) return
         return;
       }
     }
-  /*  if (m.quoted) {
-      const session = global.REPLY_SESSIONS.get(senderId);
-      if (session && session.msgId === m.quoted.key.id && Date.now() < session.expire) {
-        const plugin = plugins.find(p => p.name === session.plugin);
-        if (plugin && typeof plugin.onReply === "function") {
-          await plugin.onReply({
-            sock,
-            m,
-            session,
-            isOwner
-          });
-          return;
-        }
-      }
-    } */
-    const session = global.REPLY_SESSIONS.get(senderId);
+  const session = global.REPLY_SESSIONS.get(senderId);
+  if (session && Date.now() < session.expire) {
+  const plugin = plugins.find(p => p.name === session.plugin)
+  if (!plugin || typeof plugin.onReply !== "function") return
 
-if (session && Date.now() < session.expire) {
-  const plugin = plugins.find(p => p.name === session.plugin);
+  const text = (m.text || "").toLowerCase().trim()
 
-  if (plugin && typeof plugin.onReply === "function") {
-    // MODE 1: reply pesan (lama, tetap support)
-    if (m.quoted && session.msgId && m.quoted.key.id === session.msgId) {
-      await plugin.onReply({ sock, m, session, isOwner });
-      return;
-    }
-
-    // MODE 2: text trigger (BARU 🔥)
-    if (!m.quoted && session.trigger) {
-      const text = (m.text || "").toLowerCase().trim();
-      if (session.trigger.includes(text)) {
-        await plugin.onReply({ sock, m, session, isOwner });
-        return;
-      }
-    }
+  if (session.msgId && m.quoted?.key?.id === session.msgId) {
+    await plugin.onReply({ sock, m, session, isOwner })
+    return
   }
-}
+
+ 
+  if (Array.isArray(session.trigger) && session.trigger.includes(text)) {
+    await plugin.onReply({ sock, m, session, isOwner })
+    return
+  }
+
+  if (session.free === true) {
+    await plugin.onReply({ sock, m, session, isOwner })
+    return
+  }
+   }
+    
     if (!isCommand) {
       for (const p of plugins) {
         if (typeof p.responder === "function") {

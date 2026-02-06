@@ -95,6 +95,7 @@ function tagName(tag) {
       ai: "🤖 AI",
       nsfw: "🔞 NSFW",
       misc: "🧩 Misc",
+      internet: "🌐 Internet",
       sticker: "🧷 Sticker",
       random: "🎯 Random"
     }[tag] || tag.toUpperCase()

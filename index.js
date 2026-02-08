@@ -1,242 +1,307 @@
-require("./settings")
-require("./server")
-
-const fs = require("fs")
-const path = require("path")
-const chalk = require("chalk")
-const gradient = require("gradient-string")
-const readline = require("readline")
-const NodeCache = require("node-cache")
-const pino = require("pino")
-
+require("./settings");
+require("./server");
+const fs = require("fs");
+const path = require("path");
+const chalk = require("chalk");
+const PhoneNumber = require('awesome-phonenumber')
+const gradient = require("gradient-string");
+const readline = require("readline");
+const NodeCache = require("node-cache");
+const pino = require("pino");
 const {
   default: makeWASocket,
   useMultiFileAuthState,
   DisconnectReason,
   fetchLatestBaileysVersion,
-  jidDecode,
   jidNormalizedUser,
   makeCacheableSignalKeyStore,
-  delay
-} = require("@whiskeysockets/baileys")
-
-const { handleMessages, handleGroupParticipantUpdate } = require("./main")
-const { smsg } = require("./lib/myfunc")
-const store = require("./lib/lightweight_store")
-const simple = require("./lib/simple")
-
-const SESSION_DIR = path.join(process.cwd(), "session")
-
-if (!fs.existsSync(SESSION_DIR)) {
-  fs.mkdirSync(SESSION_DIR, { recursive: true })
+  delay,
+  jidDecode
+} = require("@whiskeysockets/baileys");
+const SESSION_DIR = path.join(process.cwd(), "session");
+if (!fs.existsSync(SESSION_DIR)) fs.mkdirSync(SESSION_DIR, {
+  recursive: true
+});
+global.botname = "Lydia AI";
+global.author = "Barxnl (Akbar)";
+global.instagram = "@barxnl250_";
+function cls() {
+  process.stdout.write("\x1Bc");
 }
-
-const WIDTH = 64
-const top = chalk.gray("┌" + "─".repeat(WIDTH) + "┐")
-const bottom = chalk.gray("└" + "─".repeat(WIDTH) + "┘")
-const side = chalk.gray("│")
-
-function ui(lines, color = "white") {
-  console.log(top)
-  for (const line of lines) {
-    console.log(
-      `${side} ${chalk[color](line).padEnd(WIDTH - 1)}${side}`
-    )
+function padRight(str, len) {
+  return str + " ".repeat(Math.max(0, len - str.length));
+}
+function kaliLogo() {
+  return [chalk.cyanBright("██████╗ ██████╗ ████████╗"), chalk.cyanBright("██╔══██╗██╔═══██╗╚══██╔══╝"), chalk.blueBright("██████╔╝██║   ██║   ██║"), chalk.blueBright("██╔══██╗██║   ██║   ██║"), chalk.magentaBright("██████╔╝╚██████╔╝   ██║"), chalk.magentaBright("╚═════╝  ╚═════╝    ╚═╝"), chalk.gray("  WHATSAPP BOT ENGINE")];
+}
+function neofetch(info = {}) {
+  cls();
+  const logo = kaliLogo();
+  const keys = Object.keys(info);
+  const maxKey = Math.max(...keys.map(v => v.length));
+  const GAP = 46;
+  for (let i = 0; i < Math.max(logo.length, keys.length); i++) {
+    const left = logo[i] || "";
+    let right = "";
+    if (keys[i]) {
+      const key = padRight(keys[i], maxKey);
+      right = chalk.greenBright(key) + chalk.gray(" : ") + chalk.whiteBright(info[keys[i]]);
+    }
+    console.log(padRight(left, GAP) + right);
   }
-  console.log(bottom)
+  console.log("");
 }
-
-store.readFromFile()
-setInterval(() => store.writeToFile(), 10000)
-
-global.botname = "CATA BOT"
-
-const rl = process.stdin.isTTY
-  ? readline.createInterface({
-      input: process.stdin,
-      output: process.stdout
-    })
-  : null
-
-const question = q =>
-  rl
-    ? new Promise(res => rl.question(q, ans => res(ans)))
-    : Promise.reject("NO_TTY")
-
-async function startsock() {
-  let sock
-
-  try {
-    const { version } = await fetchLatestBaileysVersion()
-    const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR)
-
-    const msgRetryCounterCache = new NodeCache()
-
-    sock = makeWASocket({
-      version,
-      logger: pino({ level: "silent" }),
-      printQRInTerminal: false,
-      browser: ["MacOS", "Safari", "16.0"],
-      auth: {
-        creds: state.creds,
-        keys: makeCacheableSignalKeyStore(
-          state.keys,
-          pino({ level: "silent" })
-        )
-      },
-      markOnlineOnConnect: true,
-      syncFullHistory: false,
-      msgRetryCounterCache,
-      getMessage: async key => {
-        const jid = jidNormalizedUser(key.remoteJid)
-        const msg = await store.loadMessage(jid, key.id)
-        return msg?.message || ""
-      }
-    })
-
-    simple(sock)
-    store.bind(sock.ev)
-    global.store = store
-
-    sock.ev.on("creds.update", saveCreds)
-
-    sock.ev.on("messages.upsert", async chatUpdate => {
-      try {
-        const msg = chatUpdate.messages?.[0]
-        if (!msg?.message) return
-        if (msg.key.remoteJid === "status@broadcast") return
-
-        if (msg.message?.ephemeralMessage) {
-          msg.message = msg.message.ephemeralMessage.message
-        }
-
-        sock.serializeM = m => smsg(sock, m, store)
-        await handleMessages(sock, chatUpdate)
-      } catch (e) {
-        console.error(e)
-      }
-    })
-
-    sock.decodeJid = jid => {
-      if (!jid) return jid
-      if (/:\d+@/gi.test(jid)) {
-        const d = jidDecode(jid) || {}
-        return d.user && d.server ? d.user + "@" + d.server : jid
-      }
-      return jid
-    }
-
-    sock.getName = jid => {
-      jid = sock.decodeJid(jid)
-      if (jid.endsWith("@g.us")) return "Group"
-      return "User"
-    }
-
-    sock.ev.on("connection.update", async update => {
-      const { connection, lastDisconnect } = update
-
-      if (connection === "connecting") {
-        ui(["🔄 CONNECTING", "Please wait..."], "cyan")
-      }
-
-      if (connection === "open") {
-  console.clear()
-
-  const mode = sock.authState.creds.registered
-    ? chalk.green("SESSION")
-    : chalk.yellow("PAIRING")
-
-  const userJid = sock.user?.id?.split(":")[0] || "-"
-  const device = sock.user?.device || "Unknown"
-
-  console.log(
-    gradient.mind(`\n   ${global.botname}\n`)
-  )
-
-  ui(
-    [
-      "🤖 BOT STATUS  : CONNECTED",
-      `🔐 MODE        : ${mode}`,
-      `👤 USER        : ${userJid}`,
-      `🖥️  PLATFORM   : MacOS • Safari`,
-      `⏰ TIME        : ${new Date().toLocaleString()}`,
-      "",
-      "✅ Bot siap menerima perintah",
-      "📨 Listening messages..."
-    ],
-    "cyan"
-  )
+const rl = process.stdin.isTTY ? readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+}) : null;
+const question = q => rl ? new Promise(res => rl.question(chalk.green(q), ans => res(ans))) : Promise.reject("NO_TTY");
+async function pairingPrompt() {
+  neofetch({
+    BOT: global.botname,
+    MODE: "PAIRING",
+    FORMAT: "628xxxxxxxxx"
+  });
+  return await question("Number > ");
 }
+async function startSock() {
+  neofetch({
+    BOT: global.botname,
+    STATUS: "INITIALIZING",
+    AUTHOR: global.author,
+    IG: global.instagram
+  });
+  const {
+    version
+  } = await fetchLatestBaileysVersion();
+  const {
+    state,
+    saveCreds
+  } = await useMultiFileAuthState(SESSION_DIR);
+  const msgRetryCounterCache = new NodeCache();
+  const sock = makeWASocket({
+    version,
+    logger: pino({
+      level: "silent"
+    }),
+    printQRInTerminal: false,
+    browser: ["MacOS", "Safari", "16.0"],
+    auth: {
+      creds: state.creds,
+      keys: makeCacheableSignalKeyStore(state.keys, pino({
+        level: "silent"
+      }))
+    },
+    markOnlineOnConnect: true,
+    syncFullHistory: false,
+    msgRetryCounterCache,
+    getMessage: async () => ""
+  });
+  sock.ev.on("creds.update", saveCreds);
+    sock.decodeJid = (jid) => {
+  if (!jid) return jid
 
-      if (connection === "close") {
-        const code = lastDisconnect?.error?.output?.statusCode
-
-        ui(
-          ["❌ CONNECTION CLOSED", `Reason : ${code || "Unknown"}`],
-          "red"
-        )
-
-        if (code === DisconnectReason.loggedOut) {
-          console.log(
-            chalk.red(
-              "⚠️ Logged out detected. Session invalid. Pairing ulang diperlukan."
-            )
-          )
-          fs.rmSync(SESSION_DIR, { recursive: true, force: true })
-        } else {
-          console.log(chalk.yellow("🔁 Reconnecting in 5 seconds..."))
-          await delay(5000)
-          startsock()
-        }
-      }
-    })
-
-    if (!sock.authState.creds.registered) {
-      const input = await question(
-        chalk.bgBlack(
-          chalk.greenBright("Masukkan nomor WhatsApp (628xxxx): ")
-        )
-      )
-
-      const number = input.replace(/[^0-9]/g, "")
-      if (!number) {
-        console.log("❌ Nomor tidak valid")
-        process.exit(1)
-      }
-
-      setTimeout(async () => {
-        try {
-          const code = await sock.requestPairingCode(number)
-          console.log(
-            chalk.black(chalk.bgGreen("PAIRING CODE :")),
-            chalk.white(code.match(/.{1,4}/g).join("-"))
-          )
-        } catch (e) {
-          console.error("PAIRING ERROR:", e)
-        }
-      }, 3000)
+  if (jid.includes(':')) {
+    const decoded = jidDecode(jid)
+    if (decoded?.user && decoded?.server) {
+      return decoded.user + '@' + decoded.server
     }
+  }
 
-    sock.ev.on("group-participants.update", async update => {
-      await handleGroupParticipantUpdate(sock, update)
-    })
+  return jid
+    }
+    sock.ev.on("contacts.update", updates => {
+  if (!store?.contacts) return
 
-    sock.ev.on("call", async calls => {
-      for (const call of calls) {
-        for (const p of global.plugins || []) {
-          if (typeof p.onCall === "function") {
-            await p.onCall({ sock, call })
-          }
-        }
+  for (const contact of updates) {
+    const id = sock.decodeJid(contact.id)
+    if (!id) continue
+
+    store.contacts[id] = {
+      ...(store.contacts[id] || {}),
+      id,
+      name: contact.notify || store.contacts[id]?.name || ""
+    }
+  }
+})
+    sock.getName = async (jid, withoutContact = false) => {
+  const id = sock.decodeJid(jid)
+  withoutContact = sock.withoutContact || withoutContact
+
+  if (!id) return ""
+
+  if (id.endsWith("@g.us")) {
+    const group = store.contacts[id] || await sock.groupMetadata(id).catch(() => ({}))
+    return group.subject || group.name || "Group"
+  }
+
+  if (id === "0@s.whatsapp.net") return "WhatsApp"
+
+  if (id === sock.decodeJid(sock.user?.id)) {
+    return sock.user?.name || sock.user?.verifiedName || "Me"
+  }
+
+  const contact = store.contacts[id] || {}
+
+  return (
+    (!withoutContact && contact.name) ||
+    contact.verifiedName ||
+    PhoneNumber("+" + id.replace("@s.whatsapp.net", "")).getNumber("international")
+  )
+    }
+  sock.serializeM = m => smsg(sock, m, store);
+  sock.ev.on("connection.update", async update => {
+    const {
+      connection,
+      lastDisconnect
+    } = update;
+    if (connection === "connecting") {
+      neofetch({
+        BOT: global.botname,
+        STATUS: "CONNECTING",
+        TARGET: "WhatsApp Server"
+      });
+    }
+    if (connection === "open") {
+     global.sock = sock;
+      neofetch({
+        BOT: chalk.cyanBright(global.botname),
+        STATUS: chalk.greenBright("CONNECTED"),
+        AUTH: chalk.yellowBright(sock.authState.creds.registered ? "SESSION" : "PAIRING"),
+        USER: chalk.whiteBright(sock.user?.id?.split(":")[0] || "-"),
+        DEVICE: chalk.magentaBright("Linux Server"),
+        TIME: chalk.gray(new Date().toLocaleString())
+      });
+    }
+    if (connection === "close") {
+      const code = lastDisconnect?.error?.output?.statusCode;
+      neofetch({
+        BOT: global.botname,
+        STATUS: "DISCONNECTED",
+        CODE: code || "UNKNOWN"
+      });
+      if (code !== DisconnectReason.loggedOut) {
+        await delay(5000);
+        process.exit(1);
       }
-    })
-
-    return sock
-  } catch (err) {
-    console.error("START ERROR:", err)
-    await delay(5000)
-    process.exit(1)
+    }
+  });
+  if (!sock.authState.creds.registered) {
+    const input = await pairingPrompt();
+    const number = input.replace(/[^0-9]/g, "");
+    neofetch({
+      BOT: global.botname,
+      ACTION: "REQUEST PAIRING",
+      NUMBER: number
+    });
+    setTimeout(async () => {
+      const code = await sock.requestPairingCode(number);
+      neofetch({
+        BOT: global.botname,
+        PAIRING_CODE: code.match(/.{1,4}/g).join("-"),
+        INFO: "Linked Devices"
+      });
+    }, 3000);
+  }
+  return sock;
+}
+const store = require("./lib/lightweight_store");
+const {
+  smsg
+} = require("./lib/myfunc");
+const {
+  handleMessages,
+  handleGroupParticipantUpdate
+} = require("./main");
+const simple = require("./lib/simple");
+store.readFromFile();
+setInterval(() => store.writeToFile(), 10000);
+global.store = store;
+global.plugins = [];
+function loadPlugins() {
+  const dir = path.join(__dirname, "plugins");
+  if (!fs.existsSync(dir)) return;
+  const files = fs.readdirSync(dir).filter(f => f.endsWith(".js"));
+  for (const file of files) {
+    try {
+      global.plugins.push(require(path.join(dir, file)));
+    } catch {}
   }
 }
-
-startsock()
+loadPlugins();
+let statistics = {
+  messages: 0,
+  groups: 0,
+  calls: 0,
+  startTime: Date.now()
+};
+function runtimeNeofetch() {
+  const uptime = Math.floor((Date.now() - statistics.startTime) / 1000);
+  neofetch({
+    BOT: global.botname,
+    STATUS: "RUNNING",
+    MESSAGES: statistics.messages,
+    GROUPS: statistics.groups,
+    CALLS: statistics.calls,
+    UPTIME: `${uptime}s`,
+    TIME: new Date().toLocaleString()
+  });
+}
+async function bindEvents(sock) {
+  simple(sock);
+  store.bind(sock.ev);
+  sock.ev.on("messages.upsert", async chatUpdate => {
+    try {
+      const msg = chatUpdate.messages?.[0];
+      if (!msg?.message) return;
+      if (msg.key.remoteJid === "status@broadcast") return;
+      if (msg.message?.ephemeralMessage) {
+        msg.message = msg.message.ephemeralMessage.message;
+      }
+      statistics.messages++;
+      const m = sock.serializeM(msg);
+      await handleMessages(sock, chatUpdate);
+      for (const p of global.plugins) {
+        if (typeof p.onMessage === "function") {
+          await p.onMessage({
+            sock,
+            m
+          });
+        }
+      }
+    } catch {}
+  });
+  sock.ev.on("group-participants.update", async update => {
+    statistics.groups++;
+    await handleGroupParticipantUpdate(sock, update);
+    for (const p of global.plugins) {
+      if (typeof p.onGroup === "function") {
+        await p.onGroup({
+          sock,
+          update
+        });
+      }
+    }
+  });
+  sock.ev.on("call", async calls => {
+    for (const call of calls) {
+      statistics.calls++;
+      for (const p of global.plugins) {
+        if (typeof p.onCall === "function") {
+          await p.onCall({
+            sock,
+            call
+          });
+        }
+      }
+    }
+  });
+}
+async function startRuntime() {
+  const sock = await startSock();
+  await bindEvents(sock);
+  setInterval(() => {
+    runtimeNeofetch();
+  }, 60000);
+}
+startRuntime();

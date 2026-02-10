@@ -51,7 +51,7 @@ process.on("SIGINT", saveDB)
 process.on("SIGTERM", saveDB)
 
 // const { downloadMediaMessage } = require("@whiskeysockets/baileys")
-const createTranscription = require("./lib/whisper")
+// const createTranscription = require("./lib/whisper")
 const settings = require("./settings")
 require("./config.js")
 

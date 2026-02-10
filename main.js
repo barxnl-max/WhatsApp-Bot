@@ -50,7 +50,8 @@ process.on("exit", saveDB)
 process.on("SIGINT", saveDB)
 process.on("SIGTERM", saveDB)
 
-const { downloadMediaMessage } = require("@whiskeysockets/baileys")
+// const { downloadMediaMessage } = require("@whiskeysockets/baileys")
+const createTranscription = require("./lib/whisper")
 const settings = require("./settings")
 require("./config.js")
 
@@ -316,16 +317,6 @@ async function handleMessages(sock, messageUpdate) {
       return
     } 
       
-    if (isCommand && !user.registered && !isOwner) {
-      if (!["daftar", "register", "sc", "script", "menu", "help"].includes(command)) {
-        return m.reply(
-          "👋 Hai!\n\n" +
-          "Kamu belum terdaftar di bot ini.\n\n" +
-          "📌 Silakan daftar dulu dengan format:\n" +
-          "`#daftar <nama> <umur>`"
-        )
-      }
-    }
 
     if (m.isGroup) {
       const group = getGroup(chatId)
@@ -336,7 +327,24 @@ async function handleMessages(sock, messageUpdate) {
         return
       }
     }
+      if (m.isGroup) {
+  const group = getGroup(chatId)
+  const banned = group.banned?.chat === true
 
+  if (banned) {
+    const allowCmd = ["unbanchat"]
+    const isAllowed =
+      isOwner ||
+      allowCmd.includes(command)
+
+    if (!isAllowed) {
+      if (isCommand) {
+        return m.reply("🚫 Bot dibanned di grup ini\n\nHubungi admin untuk membuka")
+      }
+      return
+    }
+  }
+      }
     const session = global.REPLY_SESSIONS.get(senderId)
 
     if (session && Date.now() < session.expire) {
@@ -426,7 +434,17 @@ async function handleMessagesExecutor(sock, m, message, plugins) {
   )
 
   if (!plugin) return
-
+   if (!user.registered && !isOwner) {
+  const allow = ["daftar", "register", "sc", "script", "menu", "help"]
+  if (!allow.includes(command)) {
+    return m.reply(
+      "👋 Hai!\n\n" +
+      "Kamu belum terdaftar di bot ini.\n\n" +
+      "📌 Silakan daftar dulu dengan format:\n" +
+      "`#daftar <nama> <umur>`"
+    )
+  }
+   }
   const stats = global.COMMAND_STATS
   stats.total++
   stats.commands[command] ??= { used: 0, success: 0, failed: 0 }
@@ -552,4 +570,4 @@ module.exports = {
   handleMessages,
   handleMessagesExecutor,
   handleGroupParticipantUpdate
-      }
+  }

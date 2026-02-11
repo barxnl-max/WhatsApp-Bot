@@ -50,8 +50,7 @@ process.on("exit", saveDB)
 process.on("SIGINT", saveDB)
 process.on("SIGTERM", saveDB)
 
-// const { downloadMediaMessage } = require("@whiskeysockets/baileys")
-// const createTranscription = require("./lib/whisper")
+const { downloadMediaMessage } = require("@whiskeysockets/baileys")
 const settings = require("./settings")
 require("./config.js")
 
@@ -179,7 +178,30 @@ async function handleMessages(sock, messageUpdate) {
       const group = getGroup(chatId)
       if (group.banned?.[senderId]) return
     }
+    if (m.isGroup) {
+  const group = getGroup(chatId)
 
+  if (group.banchat) {
+    const isOwner = m.key.fromMe
+    const text = (m.text || "").toLowerCase().trim()
+    const prefix = Array.isArray(global.prefix)
+      ? global.prefix[0]
+      : global.prefix || "."
+
+    const isCommand = text.startsWith(prefix)
+    const cmd = isCommand
+      ? text.slice(prefix.length).split(/\s+/)[0]
+      : ""
+
+    if (!isOwner) {
+      if (isCommand && cmd === "unbanchat") {
+        // allow unbanchat
+      } else {
+        return
+      }
+    }
+  }
+    }
     const user = getUser(senderId)
     const isGroup = m.isGroup
     const isPrivate = !isGroup
@@ -196,7 +218,7 @@ async function handleMessages(sock, messageUpdate) {
       ""
 
     let body = rawText.trim()
-
+   
     const botMode = getBotMode()
     const allowed = allowByMode({
       mode: botMode,
@@ -316,35 +338,7 @@ async function handleMessages(sock, messageUpdate) {
       }
       return
     } 
-      
-
-    if (m.isGroup) {
-      const group = getGroup(chatId)
-      if (group.banned?.[senderId]) {
-        if (isCommand) {
-          return m.reply("🚫 Kamu diban di grup ini")
-        }
-        return
-      }
-    }
-      if (m.isGroup) {
-  const group = getGroup(chatId)
-  const banned = group.banned?.chat === true
-
-  if (banned) {
-    const allowCmd = ["unbanchat"]
-    const isAllowed =
-      isOwner ||
-      allowCmd.includes(command)
-
-    if (!isAllowed) {
-      if (isCommand) {
-        return m.reply("🚫 Bot dibanned di grup ini\n\nHubungi admin untuk membuka")
-      }
-      return
-    }
-  }
-      }
+    
     const session = global.REPLY_SESSIONS.get(senderId)
 
     if (session && Date.now() < session.expire) {
@@ -385,7 +379,17 @@ async function handleMessages(sock, messageUpdate) {
       }
       return
     }
+   if (m.isGroup) {
+  const group = getGroup(chatId)
 
+  if (group.bannedUsers?.[senderId]) {
+    if (isCommand) {
+      return m.reply("🚫 Kamu diban di grup ini")
+    }
+    return
+  }
+   
+} 
     m._commandContext = {
       command,
       args,
@@ -444,7 +448,7 @@ async function handleMessagesExecutor(sock, m, message, plugins) {
       "`#daftar <nama> <umur>`"
     )
   }
-   }
+}
   const stats = global.COMMAND_STATS
   stats.total++
   stats.commands[command] ??= { used: 0, success: 0, failed: 0 }
@@ -570,4 +574,4 @@ module.exports = {
   handleMessages,
   handleMessagesExecutor,
   handleGroupParticipantUpdate
-  }
+            }

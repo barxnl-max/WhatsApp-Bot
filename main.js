@@ -266,17 +266,30 @@ if (isBotMessage) return
     const userMessage = body.toLowerCase().replace(/\.\s+/g, ".").trim()
 
     let usedPrefix = ""
-    let isCommand = false
+let isCommand = false
 
-    if (global.noPrefix) {
-      isCommand = true
-    } else if (Array.isArray(global.prefix)) {
-      usedPrefix = global.prefix.find(p => body.startsWith(p)) || ""
-      isCommand = Boolean(usedPrefix)
-    } else if (typeof global.prefix === "string") {
-      usedPrefix = body.startsWith(global.prefix) ? global.prefix : ""
-      isCommand = Boolean(usedPrefix)
-    }
+if (Array.isArray(global.prefix)) {
+  usedPrefix = global.prefix.find(p => body.startsWith(p)) || ""
+  isCommand = Boolean(usedPrefix)
+} else if (typeof global.prefix === "string") {
+  usedPrefix = body.startsWith(global.prefix) ? global.prefix : ""
+  isCommand = Boolean(usedPrefix)
+}
+
+// Mode noPrefix (aman)
+if (!isCommand && global.noPrefix) {
+  const firstWord = body.split(/\s+/)[0]?.toLowerCase()
+  const exists = plugins.find(p =>
+    Array.isArray(p.command)
+      ? p.command.includes(firstWord)
+      : p.command === firstWord
+  )
+
+  if (exists) {
+    isCommand = true
+    usedPrefix = ""
+  }
+}
 
     if (message.message?.stickerMessage?.fileSha256) {
       const sha = Buffer.from(
@@ -293,8 +306,8 @@ if (isBotMessage) return
     }
 
     const command = isCommand
-      ? body.slice(usedPrefix.length).trim().split(/\s+/)[0]?.toLowerCase()
-      : null
+  ? body.replace(usedPrefix, "").trim().split(/\s+/)[0]?.toLowerCase()
+  : null
 
     const args = isCommand
       ? body.slice(usedPrefix.length).trim().split(/\s+/).slice(1)

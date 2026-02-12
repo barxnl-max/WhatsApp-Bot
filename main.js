@@ -30,25 +30,49 @@ setInterval(() => {
 }, TEMP_MAX_AGE)
 
 const DB_PATH = path.join(__dirname, "data", "database.json")
-global.db = {}
+
+global.db = {
+  users: {},
+  groups: {},
+  settings: {}
+}
 
 function loadDB() {
   try {
-    global.db = JSON.parse(fs.readFileSync(DB_PATH))
-  } catch {
-    global.db = {}
+    if (!fs.existsSync(DB_PATH)) {
+      fs.mkdirSync(path.dirname(DB_PATH), { recursive: true })
+      fs.writeFileSync(DB_PATH, JSON.stringify(global.db, null, 2))
+    }
+
+    const raw = fs.readFileSync(DB_PATH, "utf8")
+    const data = raw ? JSON.parse(raw) : {}
+
+    global.db = {
+      users: data.users || {},
+      groups: data.groups || {},
+      settings: data.settings || {}
+    }
+  } catch (e) {
+    console.error("DB LOAD ERROR:", e)
+    global.db = { users: {}, groups: {}, settings: {} }
   }
 }
 
 function saveDB() {
-  fs.writeFileSync(DB_PATH, JSON.stringify(global.db, null, 2))
+  try {
+    const tmp = DB_PATH + ".tmp"
+    fs.writeFileSync(tmp, JSON.stringify(global.db, null, 2))
+    fs.renameSync(tmp, DB_PATH)
+  } catch (e) {
+    console.error("DB SAVE ERROR:", e)
+  }
 }
 
 loadDB()
 setInterval(saveDB, 30000)
 process.on("exit", saveDB)
-process.on("SIGINT", saveDB)
-process.on("SIGTERM", saveDB)
+process.on("SIGINT", () => { saveDB(); process.exit() })
+process.on("SIGTERM", () => { saveDB(); process.exit() })
 
 const { downloadMediaMessage } = require("@whiskeysockets/baileys")
 const settings = require("./settings")

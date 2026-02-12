@@ -160,6 +160,15 @@ async function handleMessages(sock, messageUpdate) {
     }
 
     const m = sock.serializeM(message)
+    const ctx = m.message?.extendedTextMessage?.contextInfo
+
+const isBotMessage =
+  m.key?.id?.startsWith("BAE5") ||
+  m.key?.id?.startsWith("3EB0") ||
+  m.quoted?.key?.fromMe ||
+  (ctx?.isForwarded && ctx?.forwardingScore > 0)
+
+if (isBotMessage) return
     const chatId = m.chat
     const senderId = m.sender
 
@@ -262,18 +271,6 @@ async function handleMessages(sock, messageUpdate) {
     const command = isCommand
       ? body.slice(usedPrefix.length).trim().split(/\s+/)[0]?.toLowerCase()
       : null
-
-    if (isCommand) {
-      const ctx = m.message?.extendedTextMessage?.contextInfo
-      const isBotMessage =
-        m.key?.fromMe ||
-        m.key?.id?.startsWith("BAE5") ||
-        m.key?.id?.startsWith("3EB0") ||
-        m.quoted?.key?.fromMe ||
-        (ctx?.isForwarded && ctx?.forwardingScore > 0)
-
-      if (isBotMessage) return
-    }
 
     const args = isCommand
       ? body.slice(usedPrefix.length).trim().split(/\s+/).slice(1)

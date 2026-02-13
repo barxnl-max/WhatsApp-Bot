@@ -90,7 +90,7 @@ async function bigjpgUpscale(imageUrl, style = "photo") {
 
 module.exports = {
   name: "upscale",
-  command: ["upscale", "hdr", "remini"],
+  command: ["upscale2", "hdr2", "remini2"],
   tags: ["tools"],
   limit: true,
 

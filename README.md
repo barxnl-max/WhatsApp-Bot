@@ -94,6 +94,7 @@ module.exports = {
   nsfw: false,        // non-NSFW
   private: false,     // usable in group & private
   limit: false,       // no limit usage
+  ownerAdmin: true,   // admin group bypas owner
 
   tags: ["example", "group", "misc"],
   usedCmd: ["exampleall"],

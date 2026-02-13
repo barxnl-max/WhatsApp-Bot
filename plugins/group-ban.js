@@ -10,13 +10,11 @@ module.exports = {
     "listbangroup"
   ],
   group: true,
-  admin: true,
+  ownerAdmin: true, // contoh admin grup dan owner bisa pake
   premium: true,
 
   async handler({ sock, m, chatId, command, isOwner, isAdmin }) {
-    if (!isOwner && !isAdmin) {
-      return m.reply("❌ Hanya admin grup");
-    }
+ 
 
     const group = getGroup(chatId);
     const ctx = m.message?.extendedTextMessage?.contextInfo;
@@ -28,7 +26,6 @@ module.exports = {
       targets = [ctx.participant];
     }
 
-    // ================= BAN =================
     if (command === "ban") {
       if (!targets.length) {
         return m.reply(
@@ -55,7 +52,6 @@ module.exports = {
       });
     }
 
-    // ================= UNBAN =================
     if (command === "unban") {
       if (!targets.length) {
         return m.reply("❌ Reply atau tag user yang mau di-unban");
@@ -84,7 +80,6 @@ module.exports = {
       });
     }
 
-    // ================= LIST BAN =================
     if (command === "listbangroup") {
       const banned = Object.keys(group.banned || {});
       if (!banned.length) {

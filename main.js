@@ -79,7 +79,7 @@ process.on("SIGTERM", () => {
 const {
   downloadMediaMessage
 } = require("@whiskeysockets/baileys");
-const createTranscription = require("./lib/whisper");
+// const createTranscription = require("./lib/whisper");
 const settings = require("./settings");
 require("./config.js");
 const {

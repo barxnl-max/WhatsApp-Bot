@@ -1,4 +1,4 @@
-const tebakgambar = require("../lib/scrape/tebakgambar")
+const tebakgambar = require("../lib/scraper/tebakgambar")
 const similarity = require("string-similarity")
 const { addExp, addCredit, getUser } = require("../lib/dbuser")
 

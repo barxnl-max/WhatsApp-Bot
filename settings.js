@@ -17,6 +17,9 @@ const settings = {
 
   updateZipUrl: "https://github.com/barxnl-max/WhatsApp-Bot/archive/refs/heads/main.zip",
 };
+
+//isi ini jika deploy di Railway
+global.botNumber= "Your Number Bot"
 //prefix
 global.prefix = [".", "!", "/", "#"];
 global.noPrefix = false; // ✅ DEFAULT: bot TANPA prefix

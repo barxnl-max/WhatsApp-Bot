@@ -81,7 +81,7 @@ const {
 } = require("@whiskeysockets/baileys");
 // const createTranscription = require("./lib/whisper");
 const settings = require("./settings");
-require("./config.js");
+// require("./config.js");
 const {
   isSudo
 } = require("./lib/index");

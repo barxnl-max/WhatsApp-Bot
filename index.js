@@ -18,22 +18,28 @@ const {
   delay,
   jidDecode
 } = require("@whiskeysockets/baileys");
+
 const SESSION_DIR = path.join(process.cwd(), "session");
 if (!fs.existsSync(SESSION_DIR)) fs.mkdirSync(SESSION_DIR, {
   recursive: true
 });
+
 global.botname = "Lydia AI";
 global.author = "Barxnl (Akbar)";
 global.instagram = "@barxnl250_";
+
 function cls() {
   process.stdout.write("\x1Bc");
 }
+
 function padRight(str, len) {
   return str + " ".repeat(Math.max(0, len - str.length));
 }
+
 function kaliLogo() {
   return [chalk.cyanBright("██████╗ ██████╗ ████████╗"), chalk.cyanBright("██╔══██╗██╔═══██╗╚══██╔══╝"), chalk.blueBright("██████╔╝██║   ██║   ██║"), chalk.blueBright("██╔══██╗██║   ██║   ██║"), chalk.magentaBright("██████╔╝╚██████╔╝   ██║"), chalk.magentaBright("╚═════╝  ╚═════╝    ╚═╝"), chalk.gray("  WHATSAPP BOT ENGINE")];
 }
+
 function neofetch(info = {}) {
   cls();
   const logo = kaliLogo();
@@ -51,11 +57,13 @@ function neofetch(info = {}) {
   }
   console.log("");
 }
+
 const rl = process.stdin.isTTY ? readline.createInterface({
   input: process.stdin,
   output: process.stdout
 }) : null;
 const question = q => rl ? new Promise(res => rl.question(chalk.green(q), ans => res(ans))) : Promise.reject("NO_TTY");
+
 async function pairingPrompt() {
   neofetch({
     BOT: global.botname,
@@ -64,6 +72,7 @@ async function pairingPrompt() {
   });
   return await question("Number > ");
 }
+
 async function startSock() {
   neofetch({
     BOT: global.botname,
@@ -71,6 +80,7 @@ async function startSock() {
     AUTHOR: global.author,
     IG: global.instagram
   });
+
   const {
     version
   } = await fetchLatestBaileysVersion();
@@ -79,6 +89,7 @@ async function startSock() {
     saveCreds
   } = await useMultiFileAuthState(SESSION_DIR);
   const msgRetryCounterCache = new NodeCache();
+
   const sock = makeWASocket({
     version,
     logger: pino({
@@ -97,59 +108,55 @@ async function startSock() {
     msgRetryCounterCache,
     getMessage: async () => ""
   });
+
   sock.ev.on("creds.update", saveCreds);
-    sock.decodeJid = (jid) => {
-  if (!jid) return jid
 
-  if (jid.includes(':')) {
-    const decoded = jidDecode(jid)
-    if (decoded?.user && decoded?.server) {
-      return decoded.user + '@' + decoded.server
+  sock.decodeJid = (jid) => {
+    if (!jid) return jid
+    if (jid.includes(':')) {
+      const decoded = jidDecode(jid)
+      if (decoded?.user && decoded?.server) {
+        return decoded.user + '@' + decoded.server
+      }
     }
+    return jid
   }
 
-  return jid
+  sock.ev.on("contacts.update", updates => {
+    if (!store?.contacts) return
+    for (const contact of updates) {
+      const id = sock.decodeJid(contact.id)
+      if (!id) continue
+      store.contacts[id] = {
+        ...(store.contacts[id] || {}),
+        id,
+        name: contact.notify || store.contacts[id]?.name || ""
+      }
     }
-    sock.ev.on("contacts.update", updates => {
-  if (!store?.contacts) return
+  })
 
-  for (const contact of updates) {
-    const id = sock.decodeJid(contact.id)
-    if (!id) continue
-
-    store.contacts[id] = {
-      ...(store.contacts[id] || {}),
-      id,
-      name: contact.notify || store.contacts[id]?.name || ""
+  sock.getName = async (jid, withoutContact = false) => {
+    const id = sock.decodeJid(jid)
+    withoutContact = sock.withoutContact || withoutContact
+    if (!id) return ""
+    if (id.endsWith("@g.us")) {
+      const group = store.contacts[id] || await sock.groupMetadata(id).catch(() => ({}))
+      return group.subject || group.name || "Group"
     }
-  }
-})
-    sock.getName = async (jid, withoutContact = false) => {
-  const id = sock.decodeJid(jid)
-  withoutContact = sock.withoutContact || withoutContact
-
-  if (!id) return ""
-
-  if (id.endsWith("@g.us")) {
-    const group = store.contacts[id] || await sock.groupMetadata(id).catch(() => ({}))
-    return group.subject || group.name || "Group"
-  }
-
-  if (id === "0@s.whatsapp.net") return "WhatsApp"
-
-  if (id === sock.decodeJid(sock.user?.id)) {
-    return sock.user?.name || sock.user?.verifiedName || "Me"
-  }
-
-  const contact = store.contacts[id] || {}
-
-  return (
-    (!withoutContact && contact.name) ||
-    contact.verifiedName ||
-    PhoneNumber("+" + id.replace("@s.whatsapp.net", "")).getNumber("international")
-  )
+    if (id === "0@s.whatsapp.net") return "WhatsApp"
+    if (id === sock.decodeJid(sock.user?.id)) {
+      return sock.user?.name || sock.user?.verifiedName || "Me"
     }
+    const contact = store.contacts[id] || {}
+    return (
+      (!withoutContact && contact.name) ||
+      contact.verifiedName ||
+      PhoneNumber("+" + id.replace("@s.whatsapp.net", "")).getNumber("international")
+    )
+  }
+
   sock.serializeM = m => smsg(sock, m, store);
+
   sock.ev.on("connection.update", async update => {
     const {
       connection,
@@ -163,7 +170,7 @@ async function startSock() {
       });
     }
     if (connection === "open") {
-     global.sock = sock;
+      global.sock = sock;
       neofetch({
         BOT: chalk.cyanBright(global.botname),
         STATUS: chalk.greenBright("CONNECTED"),
@@ -186,6 +193,7 @@ async function startSock() {
       }
     }
   });
+
   if (!sock.authState.creds.registered) {
     const input = await pairingPrompt();
     const number = input.replace(/[^0-9]/g, "");
@@ -203,8 +211,10 @@ async function startSock() {
       });
     }, 3000);
   }
+
   return sock;
 }
+
 const store = require("./lib/lightweight_store");
 const {
   smsg
@@ -214,10 +224,12 @@ const {
   handleGroupParticipantUpdate
 } = require("./main");
 const simple = require("./lib/simple");
+
 store.readFromFile();
 setInterval(() => store.writeToFile(), 10000);
 global.store = store;
 global.plugins = [];
+
 function loadPlugins() {
   const dir = path.join(__dirname, "plugins");
   if (!fs.existsSync(dir)) return;
@@ -229,12 +241,15 @@ function loadPlugins() {
   }
 }
 loadPlugins();
+
 let statistics = {
   messages: 0,
   groups: 0,
   calls: 0,
   startTime: Date.now()
 };
+
+// Fungsi ini masih ada, tapi tidak dipanggil berkala
 function runtimeNeofetch() {
   const uptime = Math.floor((Date.now() - statistics.startTime) / 1000);
   neofetch({
@@ -247,9 +262,11 @@ function runtimeNeofetch() {
     TIME: new Date().toLocaleString()
   });
 }
+
 async function bindEvents(sock) {
   simple(sock);
   store.bind(sock.ev);
+
   sock.ev.on("messages.upsert", async chatUpdate => {
     try {
       const msg = chatUpdate.messages?.[0];
@@ -271,6 +288,7 @@ async function bindEvents(sock) {
       }
     } catch {}
   });
+
   sock.ev.on("group-participants.update", async update => {
     statistics.groups++;
     await handleGroupParticipantUpdate(sock, update);
@@ -283,6 +301,7 @@ async function bindEvents(sock) {
       }
     }
   });
+
   sock.ev.on("call", async calls => {
     for (const call of calls) {
       statistics.calls++;
@@ -297,11 +316,16 @@ async function bindEvents(sock) {
     }
   });
 }
+
 async function startRuntime() {
   const sock = await startSock();
   await bindEvents(sock);
-  setInterval(() => {
-    runtimeNeofetch();
-  }, 60000);
+
+  // 🔇 INTERVAL NEOFETCH DIHAPUS AGAR KONSOL TIDAK "RESET" TERUS
+  // Jika di kemudian hari ingin mengaktifkan kembali, tinggal uncomment baris di bawah.
+  // setInterval(() => {
+  //   runtimeNeofetch();
+  // }, 60000);
 }
+
 startRuntime();
